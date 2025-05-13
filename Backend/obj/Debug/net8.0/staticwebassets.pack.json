@@ -1,0 +1,25 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/anupsharma1/BookGalaxy/Backend/wwwroot/uploads/36228e80-2f88-4cce-a860-3f2098f7ccc6_ChatGPT Image May 10, 2025, 04_29_41 PM.png",
+      "PackagePath": "staticwebassets/uploads/36228e80-2f88-4cce-a860-3f2098f7ccc6_ChatGPT Image May 10, 2025, 04_29_41 PM.png"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.BookGalaxy.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.BookGalaxy.props",
+      "PackagePath": "build\\BookGalaxy.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.BookGalaxy.props",
+      "PackagePath": "buildMultiTargeting\\BookGalaxy.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.BookGalaxy.props",
+      "PackagePath": "buildTransitive\\BookGalaxy.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
