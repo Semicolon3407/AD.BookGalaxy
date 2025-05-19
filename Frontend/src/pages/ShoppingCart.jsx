@@ -71,7 +71,12 @@ const Cart = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      addToast('Cart updated successfully', 'success');
+      setSnackbarMessage({
+        title: 'Cart Updated',
+        message: 'Your cart has been updated successfully',
+        action: 'success'
+      });
+      setOpenSnackbar(true);
       fetchCart();
       updateCartCount();
     } catch (err) {
@@ -178,17 +183,28 @@ const Cart = () => {
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Calculate individual book discounts (if any books are on sale)
   const totalBookDiscount = cart.reduce((sum, item) => {
     if (item.isOnSale && item.discountPercent > 0) {
       return sum + ((item.price * item.discountPercent / 100) * item.quantity);
     }
     return sum;
   }, 0);
+
   const afterBookDiscount = subtotal - totalBookDiscount;
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const fivePercent = totalQuantity >= 5 ? afterBookDiscount * 0.05 : 0;
-  const tenPercent = fulfilledOrders >= 10 ? (afterBookDiscount - fivePercent) * 0.10 : 0;
-  const finalTotal = afterBookDiscount - fivePercent - tenPercent;
+
+  // Calculate bulk purchase discounts
+  const bulkDiscount = totalQuantity >= 100 ? afterBookDiscount * 0.10 : // 10% off for 100+ books
+                      totalQuantity >= 10 ? afterBookDiscount * 0.10 : // 10% off for 10+ books
+                      totalQuantity >= 5 ? afterBookDiscount * 0.05 : // 5% off for 5+ books
+                      0;
+
+  // Calculate loyalty discount (for customers with 10+ fulfilled orders)
+  const loyaltyDiscount = fulfilledOrders >= 10 ? (afterBookDiscount - bulkDiscount) * 0.10 : 0;
+
+  // Calculate final total after all discounts
+  const finalTotal = afterBookDiscount - bulkDiscount - loyaltyDiscount;
 
   if (loading) {
     return (
@@ -220,12 +236,12 @@ const Cart = () => {
       >
         <Alert
           onClose={() => setOpenSnackbar(false)}
-          severity="success"
+          severity={snackbarMessage.action === 'remove' ? 'error' : 'success'}
           variant="filled"
           sx={{
             width: '100%',
             padding: '16px 20px',
-            backgroundColor: '#DC2626',
+            backgroundColor: snackbarMessage.action === 'remove' ? '#DC2626' : '#047857',
             '& .MuiAlert-icon': {
               marginRight: '12px',
               fontSize: '22px',
@@ -257,7 +273,7 @@ const Cart = () => {
         >
           <div className="flex flex-col">
             <span className="font-medium">{snackbarMessage.title}</span>
-            <span className="text-red-100 text-sm mt-0.5">{snackbarMessage.message}</span>
+            <span className={`${snackbarMessage.action === 'remove' ? 'text-red-100' : 'text-emerald-100'} text-sm mt-0.5`}>{snackbarMessage.message}</span>
           </div>
         </Alert>
       </Snackbar>
@@ -401,10 +417,14 @@ const Cart = () => {
                           <span>-${totalBookDiscount.toFixed(2)}</span>
                         </div>
                       )}
-                      {fivePercent > 0 && (
+                      {bulkDiscount > 0 && (
                         <div className="flex justify-between text-green-600">
-                          <span>5% Bulk Discount (5+ books)</span>
-                          <span>-${fivePercent.toFixed(2)}</span>
+                          <span>
+                            {totalQuantity >= 100 ? '10% Bulk Discount (100+ books)' :
+                             totalQuantity >= 10 ? '10% Bulk Discount (10+ books)' :
+                             '5% Bulk Discount (5+ books)'}
+                          </span>
+                          <span>-${bulkDiscount.toFixed(2)}</span>
                         </div>
                       )}
                       {isEligibleForLoyaltyDiscount && (
@@ -430,10 +450,10 @@ const Cart = () => {
                           </p>
                         </div>
                       )}
-                      {tenPercent > 0 && (
+                      {loyaltyDiscount > 0 && (
                         <div className="flex justify-between text-green-600">
                           <span>10% Loyalty Discount</span>
-                          <span>-${tenPercent.toFixed(2)}</span>
+                          <span>-${loyaltyDiscount.toFixed(2)}</span>
                         </div>
                       )}
                       <div className="border-t border-gray-200 pt-3">

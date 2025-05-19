@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance, { endpoints } from '../config/axios';
 import { Users, BookOpen, Package, User, TrendingUp, Award, Clock, Calendar, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -13,6 +13,7 @@ import {
   ArcElement,
   PointElement,
   LineElement,
+  Filler,
 } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import { Loader2 } from 'lucide-react';
@@ -29,7 +30,8 @@ ChartJS.register(
   Legend,
   ArcElement,
   PointElement,
-  LineElement
+  LineElement,
+  Filler
 );
 
 const AdminPanel = () => {
@@ -90,21 +92,21 @@ const AdminPanel = () => {
         const [
           bookRes,
           orderSummaryRes,
-          genresRes,
-          orderStatusRes,
           monthlySalesRes,
-          newMembersRes,
+          orderStatusRes,
           topBestsellersRes,
+          genresRes,
+          newMembersRes,
           totalSalesRes
         ] = await Promise.all([
-          axios.get('http://localhost:5176/api/books', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/order-summary', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/genres', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/order-status', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/monthly-sales', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/new-members', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/top-bestsellers', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5176/api/AdminDashboard/dashboard/total-sales', { headers: { Authorization: `Bearer ${token}` } })
+          axiosInstance.get('/books'),
+          axiosInstance.get(endpoints.admin.dashboard.orderSummary),
+          axiosInstance.get(endpoints.admin.dashboard.monthlySales),
+          axiosInstance.get(endpoints.admin.dashboard.orderStatus),
+          axiosInstance.get(endpoints.admin.dashboard.topBestsellers),
+          axiosInstance.get(endpoints.admin.dashboard.genres),
+          axiosInstance.get(endpoints.admin.dashboard.newMembers),
+          axiosInstance.get(endpoints.admin.dashboard.totalSales)
         ]);
 
         const books = bookRes.data || [];
@@ -126,16 +128,27 @@ const AdminPanel = () => {
           pendingOrders: totalOrders - fulfilledOrders - cancelledOrders
         });
 
-        setSalesData(monthlySalesRes.data || []);
+        // Format sales data with proper month labels
+        const formattedSalesData = (monthlySalesRes.data || []).map(item => ({
+          month: item.month,  // Already in YYYY-MM format
+          total: parseFloat(item.total) || 0
+        }));
+        setSalesData(formattedSalesData);
         setOrdersStatusData(orderStatusRes.data || []);
         setBestsellers(topBestsellersRes.data || []);
         setGenreData(genresRes.data || []);
-        setNewMembersData(newMembersRes.data || []);
+        // Format new members data with proper month labels
+        const formattedMembersData = (newMembersRes.data || []).map(item => ({
+          month: item.month,  // Already in YYYY-MM format
+          count: parseInt(item.count) || 0
+        }));
+        setNewMembersData(formattedMembersData);
 
         setError('');
       } catch (err) {
         setError('Failed to load dashboard data');
-        console.error('Error loading dashboard data:', err);
+        const errorMessage = err.message || 'Failed to load dashboard data';
+      console.error('Error loading dashboard data:', errorMessage);
       } finally {
         setLoading(false);
       }

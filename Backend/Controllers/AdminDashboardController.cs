@@ -204,18 +204,46 @@ namespace BookGalaxy.Controllers
         [HttpGet("dashboard/monthly-sales")]
         public async Task<IActionResult> GetMonthlySales()
         {
-            var sixMonthsAgo = DateTime.UtcNow.AddMonths(-5);
-            var sales = await _context.Orders
-                .Where(o => o.OrderDate >= sixMonthsAgo && !o.IsCancelled)
-                .GroupBy(o => new { Month = o.OrderDate.Month, Year = o.OrderDate.Year })
-                .Select(g => new { 
-                    month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                    total = g.Sum(o => o.TotalAmount)
-                })
-                .OrderBy(x => x.month)
-                .ToListAsync();
+            try
+            {
+                var now = DateTime.UtcNow;
+                var sixMonthsAgo = now.AddMonths(-5).Date;
+                
+                // Get all months in the range
+                var monthRange = Enumerable.Range(0, 6)
+                    .Select(i => sixMonthsAgo.AddMonths(i))
+                    .Select(date => new
+                    {
+                        month = $"{date.Year}-{date.Month:D2}",
+                        total = 0m
+                    })
+                    .ToList();
 
-            return Ok(sales);
+                // Get actual sales data
+                var salesData = await _context.Orders
+                    .Where(o => o.OrderDate >= sixMonthsAgo && o.OrderDate <= now && !o.IsCancelled)
+                    .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+                    .Select(g => new
+                    {
+                        month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        total = g.Sum(o => o.TotalAmount)
+                    })
+                    .ToListAsync();
+
+                // Merge the data
+                var result = monthRange.Select(m => new
+                {
+                    month = m.month,
+                    total = salesData.FirstOrDefault(s => s.month == m.month)?.total ?? 0m
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetMonthlySales: {ex}");
+                return StatusCode(500, new { message = "Error fetching monthly sales data", error = ex.Message });
+            }
         }
 
         [HttpGet("dashboard/user-registrations")]
@@ -273,17 +301,46 @@ namespace BookGalaxy.Controllers
         [HttpGet("dashboard/new-members")]
         public async Task<IActionResult> GetNewMembersOverTime()
         {
-            var sixMonthsAgo = DateTime.UtcNow.AddMonths(-5);
-            var newMembers = await _context.Members
-                .Where(m => m.JoinDate >= sixMonthsAgo)
-                .GroupBy(m => new { m.JoinDate.Year, m.JoinDate.Month })
-                .Select(g => new {
-                    month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                    count = g.Count()
-                })
-                .OrderBy(x => x.month)
-                .ToListAsync();
-            return Ok(newMembers);
+            try
+            {
+                var now = DateTime.UtcNow;
+                var sixMonthsAgo = now.AddMonths(-5).Date;
+
+                // Get all months in the range
+                var monthRange = Enumerable.Range(0, 6)
+                    .Select(i => sixMonthsAgo.AddMonths(i))
+                    .Select(date => new
+                    {
+                        month = $"{date.Year}-{date.Month:D2}",
+                        count = 0
+                    })
+                    .ToList();
+
+                // Get actual member counts
+                var memberCounts = await _context.Members
+                    .Where(m => m.JoinDate >= sixMonthsAgo && m.JoinDate <= now)
+                    .GroupBy(m => new { m.JoinDate.Year, m.JoinDate.Month })
+                    .Select(g => new
+                    {
+                        month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        count = g.Count()
+                    })
+                    .ToListAsync();
+
+                // Merge the data
+                var result = monthRange.Select(m => new
+                {
+                    month = m.month,
+                    count = memberCounts.FirstOrDefault(mc => mc.month == m.month)?.count ?? 0
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetNewMembersOverTime: {ex}");
+                return StatusCode(500, new { message = "Error fetching new members data", error = ex.Message });
+            }
         }
 
         [HttpGet("dashboard/total-sales")]

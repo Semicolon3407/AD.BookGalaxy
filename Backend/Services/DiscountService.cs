@@ -11,6 +11,7 @@ namespace BookGalaxy.Services
         private const decimal TEN_PLUS_DISCOUNT = 0.10m; // 10% discount for 10+ books
         private const int FIVE_PLUS_THRESHOLD = 5; // 5+ books threshold
         private const int TEN_PLUS_THRESHOLD = 10; // 10+ books threshold
+        private const int LOYALTY_ORDER_THRESHOLD = 5; // Number of fulfilled orders needed for loyalty discount
 
         public async Task<DiscountEligibility> CheckDiscountEligibilityAsync(int memberId)
         {
