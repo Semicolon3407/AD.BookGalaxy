@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { Snackbar, Alert } from '@mui/material';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
@@ -10,6 +11,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   
   const navigate = useNavigate();
 
@@ -32,7 +34,10 @@ const Register = () => {
         password,
         role: 'member', // Setting default role as 'member' since role section is removed
       });
-      navigate('/login');
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       console.error('Registration error:', err);
       setError(err.response?.data?.message || 'Failed to register');
@@ -43,15 +48,67 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 via-indigo-100 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            minWidth: '380px',
+            background: '#ffffff',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            borderRadius: '6px',
+            padding: '0'
+          }
+        }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            padding: '16px 20px',
+            backgroundColor: '#047857',
+            '& .MuiAlert-icon': {
+              marginRight: '12px',
+              fontSize: '22px',
+              opacity: 1,
+              padding: '2px'
+            },
+            '& .MuiAlert-message': {
+              padding: '4px 0',
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '14px',
+              fontWeight: 500,
+              lineHeight: 1.5
+            },
+            '& .MuiAlert-action': {
+              padding: '0 8px',
+              marginRight: '-8px'
+            },
+            '& .MuiIconButton-root': {
+              color: '#ffffff',
+              padding: '4px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            },
+            '& .MuiSvgIcon-root': {
+              fontSize: '20px'
+            }
+          }}
+        >
+          <div className="flex flex-col">
+            <span className="font-medium">Success</span>
+            <span className="text-emerald-100 text-sm mt-0.5">Your account has been created successfully.</span>
+          </div>
+        </Alert>
+      </Snackbar>
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
         <div className="text-center">
-          <div className="flex justify-center">
-            <div className="h-14 w-14 rounded-full bg-indigo-600 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          </div>
+
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Join BookGalaxy
           </h2>

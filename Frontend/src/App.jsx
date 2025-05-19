@@ -1,34 +1,35 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Home from './pages/Home';
+import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import AdminPanel from './pages/AdminPanel';
-import Cart from './pages/Cart';
+import AdminDashboard from './pages/AdminDashboard';
+import ShoppingCart from './pages/ShoppingCart';
 import Bookmarks from './pages/Bookmarks';
 import Navbar from './components/Navbar';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import BookPage from './pages/BookPage';
-import BookDetailPage from './pages/BookDetailPage';
-import UserManagement from './pages/UserManagement';
-import Orders from './pages/Orders';
-import OrderManagement from './pages/OrderManagement';
-import StaffPanel from './pages/StaffPanel';
-import StaffBooks from './pages/StaffBooks';
-import StaffFulfilledOrders from './pages/StaffFulfilledOrders';
+import Books from './pages/Books';
+import BookDetails from './pages/BookDetails';
+import AdminUsers from './pages/AdminUsers';
+import UserOrders from './pages/UserOrders';
+import AdminOrders from './pages/AdminOrders';
+import StaffDashboard from './pages/StaffDashboard';
+import StaffBookManagement from './pages/StaffBookManagement';
+import StaffOrderHistory from './pages/StaffOrderHistory';
 import Announcements from './pages/Announcements';
-import AdminReviews from './pages/AdminReviews';
+import AdminReviewManagement from './pages/AdminReviewManagement';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { BookmarkProvider } from './context/BookmarkContext';
 import { ToastProvider } from './context/ToastContext';
 import Sidebar from './components/Sidebar';
-import AdminBookManagement from './pages/AdminBookManagement';
-import AdminAnnouncementManagement from './pages/AdminAnnouncementManagement';
+import AdminBooks from './pages/AdminBooks';
+import AdminAnnouncements from './pages/AdminAnnouncements';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { useEffect } from 'react';
-import OrderNotificationListener from './components/OrderNotificationListener';
+import OrderNotifications from './components/OrderNotifications';
+import OrderSuccess from './pages/OrderSuccess';
 import Footer from './components/Footer';
 
 const App = () => {
@@ -47,7 +48,7 @@ const App = () => {
     <CartProvider>
       <BookmarkProvider>
         <ToastProvider>
-          <OrderNotificationListener />
+          <OrderNotifications />
           <div className="min-h-screen bg-gray-50">
             {(!isAdminOrStaff && !isLoginOrRegister) && <Navbar />}
             {user && isAdminOrStaff && <Sidebar />}
@@ -55,114 +56,123 @@ const App = () => {
               <div className="min-h-screen pb-24">
                 <Routes>
                   {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/books" element={<BookPage />} />
-                <Route path="/book/:id" element={<BookDetailPage />} />
-                <Route path="/announcements" element={<Announcements />} />
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/books" element={<Books />} />
+                  <Route path="/book/:id" element={<BookDetails />} />
+                  <Route path="/announcements" element={<Announcements />} />
+                  <Route
+                    path="/order-confirmation"
+                    element={
+                      <ProtectedRoute allowedRoles={['Member']}>
+                        <OrderSuccess />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Member Routes */}
-                <Route
-                  path="/cart"
-                  element={
-                    <ProtectedRoute allowedRoles={['Member']}>
-                      <Cart />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/bookmarks"
-                  element={
-                    <ProtectedRoute allowedRoles={['Member']}>
-                      <Bookmarks />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders"
-                  element={
-                    <ProtectedRoute allowedRoles={['Member']}>
-                      <Orders />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Member Routes */}
+                  <Route
+                    path="/cart"
+                    element={
+                      <ProtectedRoute allowedRoles={['Member']}>
+                        <ShoppingCart />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/bookmarks"
+                    element={
+                      <ProtectedRoute allowedRoles={['Member']}>
+                        <Bookmarks />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orders"
+                    element={
+                      <ProtectedRoute allowedRoles={['Member']}>
+                        <UserOrders />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Staff Routes */}
-                <Route
-                  path="/staff"
-                  element={
-                    <ProtectedRoute allowedRoles={['Staff']}>
-                      <StaffPanel />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/staff/books"
-                  element={
-                    <ProtectedRoute allowedRoles={['Staff']}>
-                      <StaffBooks />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/staff/fulfilled-orders"
-                  element={
-                    <ProtectedRoute allowedRoles={['Staff']}>
-                      <StaffFulfilledOrders />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Staff Routes */}
+                  <Route
+                    path="/staff"
+                    element={
+                      <ProtectedRoute allowedRoles={['Staff']}>
+                        <StaffDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/books"
+                    element={
+                      <ProtectedRoute allowedRoles={['Staff']}>
+                        <StaffBookManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff/fulfilled-orders"
+                    element={
+                      <ProtectedRoute allowedRoles={['Staff']}>
+                        <StaffOrderHistory />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Admin Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <AdminPanel />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/users"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <UserManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/orders"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <OrderManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/reviews"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <AdminReviews />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/books"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <AdminBookManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/announcements"
-                  element={
-                    <ProtectedRoute allowedRoles={['Admin']}>
-                      <AdminAnnouncementManagement />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Admin Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminUsers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/orders"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminOrders />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/reviews"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminReviewManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/books"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminBooks />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/announcements"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AdminAnnouncements />
+                      </ProtectedRoute>
+                    }
+                  />
+
 
                 {/* Not Found */}
                 <Route path="*" element={<div className="p-10">Page Not Found</div>} />

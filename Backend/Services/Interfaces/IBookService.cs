@@ -5,11 +5,11 @@ namespace BookGalaxy.Services.Interfaces
 {
     public interface IBookService
     {
-        Task<List<BookDto>> GetAllBooksAsync();
-        Task<BookDto?> GetBookByIdAsync(int bookId);
-        Task<Book?> CreateBookAsync(CreateBookDto dto);
-        Task<Book?> UpdateBookAsync(int bookId, UpdateBookDto dto);
+        Task<List<BookResponseDto>> GetAllBooksAsync();
+        Task<BookResponseDto?> GetBookByIdAsync(int bookId);
+        Task<Book?> CreateBookAsync(BookCreateDto dto);
+        Task<Book?> UpdateBookAsync(int bookId, BookUpdateDto dto);
         Task<bool> DeleteBookAsync(int bookId);
-        Task<List<BookDto>> GetBooksAsync(BookQueryParameters query);
+        Task<List<BookResponseDto>> GetBooksAsync(BookQueryParameters query);
     }
 }

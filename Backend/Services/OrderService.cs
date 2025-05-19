@@ -14,13 +14,15 @@ namespace BookGalaxy.Services
         private readonly IBroadcastService _broadcastService;
         private readonly IEmailService _emailService;
         private readonly IHubContext<OrderHub> _orderHubContext;
+        private readonly IDiscountService _discountService;
 
-        public OrderService(AppDbContext context, IBroadcastService broadcastService, IEmailService emailService, IHubContext<OrderHub> orderHubContext)
+        public OrderService(AppDbContext context, IBroadcastService broadcastService, IEmailService emailService, IHubContext<OrderHub> orderHubContext, IDiscountService discountService)
         {
             _context = context;
             _broadcastService = broadcastService;
             _emailService = emailService;
             _orderHubContext = orderHubContext;
+            _discountService = discountService;
         }
 
           public async Task<Order> PlaceOrderAsync(int memberId, CreateOrderDto dto)
@@ -61,18 +63,12 @@ namespace BookGalaxy.Services
                     total += unitPrice * item.Quantity;
                 }
 
-                if (dto.Items.Count >= 5)
-                {
-                    total *= 0.95m;
-                    order.AppliedFivePercentDiscount = true;
-                }
-
-                // Only count fulfilled orders for the 10% discount
-                if (member.Orders.Count(o => o.Status == "Fulfilled" && !o.IsCancelled) >= 10)
-                {
-                    total *= 0.90m;
-                    order.AppliedTenPercentDiscount = true;
-                }
+                // Calculate and apply discounts
+                var totalItems = dto.Items.Count;
+                var (discountedTotal, fivePlusDiscount, tenPlusDiscount) = await _discountService.CalculateDiscountsAsync(total, memberId, totalItems);
+                order.AppliedFivePercentDiscount = fivePlusDiscount;
+                order.AppliedTenPercentDiscount = tenPlusDiscount;
+                total = discountedTotal;
 
                 order.TotalPrice = total;
                 _context.Orders.Add(order);

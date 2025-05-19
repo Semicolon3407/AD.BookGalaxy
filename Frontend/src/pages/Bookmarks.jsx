@@ -6,6 +6,7 @@ import { useBookmark } from '../context/BookmarkContext';
 import { useToast } from '../context/ToastContext';
 import { Bookmark, ShoppingCart, Eye, Loader2, AlertCircle, CheckCircle2, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Snackbar, Alert } from '@mui/material';
 
 const placeholderImg = '/placeholder-book.jpg';
 
@@ -17,6 +18,8 @@ const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedBookId, setExpandedBookId] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState({ title: '', message: '', action: '' });
 
   useEffect(() => {
     fetchBookmarks();
@@ -38,12 +41,21 @@ const Bookmarks = () => {
 
   const handleRemoveBookmark = async (bookId) => {
     try {
+      // Get book details before removing
+      const book = bookmarks.find(b => b.bookId === bookId);
+      
       await axios.delete(`http://localhost:5176/api/Bookmark/${bookId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setBookmarks(prev => prev.filter(book => book.bookId !== bookId));
+      setBookmarks(prev => prev.filter(b => b.bookId !== bookId));
       await updateBookmarkCount();
-      addToast('Bookmark removed successfully', 'success');
+      
+      setSnackbarMessage({
+        title: 'Removed from Bookmarks',
+        message: `${book.title} has been removed from your bookmarks`,
+        action: 'remove'
+      });
+      setOpenSnackbar(true);
     } catch (err) {
       console.error('Failed to remove bookmark:', err);
       addToast('Failed to remove bookmark', 'error');
@@ -63,7 +75,14 @@ const Bookmarks = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      addToast('Book added to cart successfully', 'success');
+      
+      // Get the book title for the notification
+      const book = bookmarks.find(b => b.bookId === bookId);
+      setSnackbarMessage({
+        title: 'Added to Cart',
+        message: `${book.title} has been added to your cart`
+      });
+      setOpenSnackbar(true);
     } catch (err) {
       console.error('Failed to add to cart:', err);
       addToast('Failed to add book to cart', 'error');
@@ -87,6 +106,64 @@ const Bookmarks = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            minWidth: '380px',
+            background: '#ffffff',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            borderRadius: '6px',
+            padding: '0'
+          }
+        }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            padding: '16px 20px',
+            backgroundColor: '#4F46E5',
+            '& .MuiAlert-icon': {
+              marginRight: '12px',
+              fontSize: '22px',
+              opacity: 1,
+              padding: '2px'
+            },
+            '& .MuiAlert-message': {
+              padding: '4px 0',
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '14px',
+              fontWeight: 500,
+              lineHeight: 1.5
+            },
+            '& .MuiAlert-action': {
+              padding: '0 8px',
+              marginRight: '-8px'
+            },
+            '& .MuiIconButton-root': {
+              color: '#ffffff',
+              padding: '4px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            },
+            '& .MuiSvgIcon-root': {
+              fontSize: '20px'
+            }
+          }}
+        >
+          <div className="flex flex-col">
+            <span className="font-medium">{snackbarMessage.title}</span>
+            <span className="text-indigo-100 text-sm mt-0.5">{snackbarMessage.message}</span>
+          </div>
+        </Alert>
+      </Snackbar>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="mb-10 text-center">

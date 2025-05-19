@@ -25,7 +25,7 @@ namespace BookGalaxy.Services
             _logger = logger;
         }
 
-        public async Task<Book?> CreateBookAsync(CreateBookDto dto)
+        public async Task<Book?> CreateBookAsync(BookCreateDto dto)
         {
             _logger.LogInformation("Creating book with ISBN: {ISBN}", dto.ISBN);
 
@@ -90,7 +90,7 @@ namespace BookGalaxy.Services
             }
         }
 
-        public async Task<BookDto?> GetBookByIdAsync(int bookId)
+        public async Task<BookResponseDto?> GetBookByIdAsync(int bookId)
         {
             var book = await _context.Books
                 .Include(b => b.Reviews)
@@ -99,7 +99,7 @@ namespace BookGalaxy.Services
             if (book == null)
                 return null;
 
-            return new BookDto
+            return new BookResponseDto
             {
                 BookId = book.BookId,
                 Title = book.Title,
@@ -127,13 +127,13 @@ namespace BookGalaxy.Services
             };
         }
 
-        public async Task<List<BookDto>> GetAllBooksAsync()
+        public async Task<List<BookResponseDto>> GetAllBooksAsync()
         {
             var books = await _context.Books
                 .Include(b => b.Reviews)
                 .ToListAsync();
 
-            return books.Select(b => new BookDto
+            return books.Select(b => new BookResponseDto
             {
                 BookId = b.BookId,
                 Title = b.Title,
@@ -161,7 +161,7 @@ namespace BookGalaxy.Services
             }).ToList();
         }
 
-        public async Task<Book?> UpdateBookAsync(int bookId, UpdateBookDto dto)
+        public async Task<Book?> UpdateBookAsync(int bookId, BookUpdateDto dto)
         {
             var book = await _context.Books.FindAsync(bookId);
             if (book == null)
@@ -234,7 +234,7 @@ namespace BookGalaxy.Services
             return true;
         }
 
-        public async Task<List<BookDto>> GetBooksAsync(BookQueryParameters query)
+        public async Task<List<BookResponseDto>> GetBooksAsync(BookQueryParameters query)
         {
             var books = _context.Books.Include(b => b.Reviews).AsQueryable();
 
@@ -322,7 +322,7 @@ namespace BookGalaxy.Services
 
             books = books.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize);
 
-            return await books.Select(b => new BookDto
+            return await books.Select(b => new BookResponseDto
             {
                 BookId = b.BookId,
                 Title = b.Title,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -86,7 +86,7 @@ const Announcements = () => {
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Expires: {format(new Date(a.endTime), 'MMM d, yyyy h:mm a')}
+                  Expires: {format(parseISO(a.endTime), 'MMM d, yyyy h:mm a')}
                 </div>
               </motion.div>
             ))

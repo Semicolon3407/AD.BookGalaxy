@@ -73,6 +73,7 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBroadcastService, BroadcastService>();
+builder.Services.AddScoped<IDiscountService, DiscountService>();
 
 // Add JWT Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
