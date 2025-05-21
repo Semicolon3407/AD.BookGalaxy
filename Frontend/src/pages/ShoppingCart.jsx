@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -25,6 +25,53 @@ const Cart = () => {
   const [isSummaryOpen, setIsSummaryOpen] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState({ title: '', message: '', action: '' });
+  
+  // Calculate all discounts and totals using useMemo
+  const {
+    subtotal,
+    totalBookDiscount,
+    afterBookDiscount,
+    totalQuantity,
+    bulkDiscount,
+    loyaltyDiscount,
+    finalTotal
+  } = useMemo(() => {
+    // Calculate base subtotal
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Calculate book-specific discounts
+    const totalBookDiscount = cart.reduce((sum, item) => {
+      if (item.isOnSale && item.discountPercent > 0) {
+        return sum + ((item.price * item.discountPercent / 100) * item.quantity);
+      }
+      return sum;
+    }, 0);
+    
+    const afterBookDiscount = subtotal - totalBookDiscount;
+    const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Calculate bulk purchase discount
+    const bulkDiscount = totalQuantity >= 100 ? afterBookDiscount * 0.10 :
+                        totalQuantity >= 10 ? afterBookDiscount * 0.10 :
+                        totalQuantity >= 5 ? afterBookDiscount * 0.05 :
+                        0;
+    
+    // Calculate loyalty discount
+    const loyaltyDiscount = fulfilledOrders >= 10 ? (afterBookDiscount - bulkDiscount) * 0.10 : 0;
+    
+    // Calculate final total
+    const finalTotal = afterBookDiscount - bulkDiscount - loyaltyDiscount;
+    
+    return {
+      subtotal,
+      totalBookDiscount,
+      afterBookDiscount,
+      totalQuantity,
+      bulkDiscount,
+      loyaltyDiscount,
+      finalTotal
+    };
+  }, [cart, fulfilledOrders]);
 
   useEffect(() => {
     fetchCart();
@@ -159,7 +206,7 @@ const Cart = () => {
           quantity: item.quantity
         })),
         subtotal: subtotal,
-        discount: totalBookDiscount + fivePercent + tenPercent,
+        discount: totalBookDiscount + bulkDiscount + loyaltyDiscount,
         total: finalTotal,
         shippingAddress: user.address || 'Default Shipping Address'
       };
@@ -181,30 +228,7 @@ const Cart = () => {
     }
   };
 
-  // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // Calculate individual book discounts (if any books are on sale)
-  const totalBookDiscount = cart.reduce((sum, item) => {
-    if (item.isOnSale && item.discountPercent > 0) {
-      return sum + ((item.price * item.discountPercent / 100) * item.quantity);
-    }
-    return sum;
-  }, 0);
 
-  const afterBookDiscount = subtotal - totalBookDiscount;
-  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  // Calculate bulk purchase discounts
-  const bulkDiscount = totalQuantity >= 100 ? afterBookDiscount * 0.10 : // 10% off for 100+ books
-                      totalQuantity >= 10 ? afterBookDiscount * 0.10 : // 10% off for 10+ books
-                      totalQuantity >= 5 ? afterBookDiscount * 0.05 : // 5% off for 5+ books
-                      0;
-
-  // Calculate loyalty discount (for customers with 10+ fulfilled orders)
-  const loyaltyDiscount = fulfilledOrders >= 10 ? (afterBookDiscount - bulkDiscount) * 0.10 : 0;
-
-  // Calculate final total after all discounts
-  const finalTotal = afterBookDiscount - bulkDiscount - loyaltyDiscount;
 
   if (loading) {
     return (

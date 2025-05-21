@@ -56,7 +56,7 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 3000);
+    }, 5000);
   }, []);
 
   const removeToast = useCallback((id) => {

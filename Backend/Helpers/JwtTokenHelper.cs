@@ -27,8 +27,8 @@ namespace BookGalaxy.Helpers
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature),
-                Issuer = "bookheaven",
-                Audience = "bookheaven"
+                Issuer = "bookgalaxy",
+                Audience = "bookgalaxy"
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
