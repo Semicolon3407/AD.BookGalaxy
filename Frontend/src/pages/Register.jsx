@@ -32,7 +32,7 @@ const Register = () => {
         fullName,
         email,
         password,
-        role: 'member', // Setting default role as 'member' since role section is removed
+        role: 'Member', // Backend expects 'Member' with capital M
       });
       setOpenSnackbar(true);
       setTimeout(() => {
